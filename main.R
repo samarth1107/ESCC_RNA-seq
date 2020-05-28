@@ -241,10 +241,35 @@ library(Homo.sapiens)
 
 
 gene_ids = c(filtered_genes$hgnc_symbol)
-input_hyper = data.frame(gene_ids, is_candidate=1)
-res_hyper = go_enrich(input_hyper, n_randset=100)
+gene_input= data.frame(gene_ids, 
+                       is_candidate=1)
+res_hyper = go_enrich(gene_input,
+                      n_randset=100)
+stats = res_hyper$results
+ontology <- by(stats, 
+               stats$ontology, 
+               head, 
+               n=10)
 
-res_hyper = go_enrich(input_hyper, godir="E:/Project/RNA-seq/Ontology/go_weekly-termdb-tables", )
 
-top_gos_hyper = res_hyper[[1]][1:5, 'node_id']
+write.table(c(ontology), 
+            file = "ontology.txt", sep = "\n",
+            row.names = FALSE)
+
+
+top_gos_hyper = res_hyper[[1]][1:10, 'node_id']
 plot_anno_scores(res_hyper, top_gos_hyper)
+
+######################
+
+filter <- filtered_genes[(filtered_genes$log2FoldChange>0),]
+
+select <- rownames(filtered_genes)[1:10]
+
+df <- as.data.frame(colData(DESeq)[,c("condition","type")])
+
+pheatmap(assay(normTransform(DESeq_Data[select])), 
+         cluster_rows=FALSE, 
+         show_rownames=TRUE,
+         cluster_cols=FALSE, 
+         annotation_col=df)
